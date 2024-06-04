@@ -11,7 +11,7 @@ import (
 
 type Application interface {
 	Name() string
-	Shutdown()
+	Shutdown(ctx context.Context)
 }
 
 func GracefulShutdown(ctx context.Context, apps ...Application) {
@@ -24,7 +24,7 @@ func GracefulShutdown(ctx context.Context, apps ...Application) {
 
 	for _, app := range apps {
 		logger.Info(ctx, "Shutting down %s", app.Name())
-		app.Shutdown()
+		app.Shutdown(ctx)
 		logger.Info(ctx, "%s is down", app.Name())
 	}
 }
