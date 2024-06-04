@@ -10,13 +10,13 @@ import (
 	"github.com/google/uuid"
 )
 
-func GetHTTPRouter() *gin.Engine {
+func GetHTTPRouter(mode string) *gin.Engine {
+	gin.SetMode(mode)
 	engine := gin.New()
 	engine.Use(RequestTimeMiddleware)
 	engine.Use(RequestIDMiddleware)
 	engine.Use(OptionRequestMiddleware)
 	return engine
-
 }
 
 func OptionRequestMiddleware(c *gin.Context) {
