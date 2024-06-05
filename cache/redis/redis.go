@@ -2,6 +2,7 @@ package redis
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -39,22 +40,38 @@ func NewCache(ctx context.Context, conf *Config) *Cache {
 	return &Cache{conn: client}
 }
 
-// GetV implements cache.Cache.
-func (c *Cache) GetV(key string, value any) error {
-	panic("unimplemented")
+// Get implements cache.Cache.
+func (c *Cache) Get(ctx context.Context, key string) (string, error) {
+	return c.conn.Get(ctx, key).Result()
 }
 
-// Get implements cache.Cache.
-func (c *Cache) Get(key string) (string, error) {
-	panic("unimplemented")
+// GetV implements cache.Cache.
+func (c *Cache) GetV(ctx context.Context, key string, value any) error {
+	v, err := c.conn.Get(ctx, key).Result()
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal([]byte(v), value)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // Set implements cache.Cache.
-func (c *Cache) Set(key string, value any) error {
-	panic("unimplemented")
+func (c *Cache) Set(ctx context.Context, key string, value any) error {
+	v, err := json.Marshal(value)
+	if err != nil {
+		return err
+	}
+	return c.conn.Set(ctx, key, v, 0).Err()
 }
 
 // SetWithTimeout implements cache.Cache.
-func (c *Cache) SetWithTimeout(key string, value any, timeout time.Duration) error {
-	panic("unimplemented")
+func (c *Cache) SetWithTimeout(ctx context.Context, key string, value any, timeout time.Duration) error {
+	v, err := json.Marshal(value)
+	if err != nil {
+		return err
+	}
+	return c.conn.Set(ctx, key, v, timeout).Err()
 }

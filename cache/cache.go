@@ -13,10 +13,10 @@ const (
 )
 
 type Cache interface {
-	Set(key string, value any) error
-	Get(key string) (string, error)
-	GetV(key string, value any) error
-	SetWithTimeout(key string, value any, timeout time.Duration) error
+	Set(ctx context.Context, key string, value any) error
+	Get(ctx context.Context, key string) (string, error)
+	GetV(ctx context.Context, key string, value any) error
+	SetWithTimeout(ctx context.Context, key string, value any, timeout time.Duration) error
 }
 
 type Config struct {
