@@ -2,14 +2,13 @@ package consul
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"strings"
+	"reflect"
 	"time"
 
 	"github.com/gofreego/goutils/logger"
 	"github.com/hashicorp/consul/api"
-	"github.com/mitchellh/mapstructure"
+	"gopkg.in/yaml.v2"
 )
 
 type Config struct {
@@ -17,7 +16,6 @@ type Config struct {
 	Address        string
 	Token          string
 	Path           string
-	LookForChange  bool
 	RefreshInSecs  int
 }
 
@@ -38,84 +36,87 @@ func NewConsulReader(ctx context.Context, config *Config) (*ConsulReader, error)
 	return &ConsulReader{kv: client.KV(), conf: config}, nil
 }
 
-func insertMap(m map[string]any, keys []string, len int, value []byte) {
-	if len == 1 {
-		var v any
-		err := json.Unmarshal(value, &v)
-		if err != nil {
-			m[keys[0]] = string(value)
-			return
-		}
-		m[keys[0]] = v
-		return
-	}
-	if t, ok := m[keys[0]].(map[string]any); ok {
-		insertMap(t, keys[1:], len-1, value)
-	} else {
-		m[keys[0]] = make(map[string]any)
-		insertMap(m[keys[0]].(map[string]any), keys[1:], len-1, value)
-	}
-}
-
-// this function will read the tags and fetch values from consul
-func (a *ConsulReader) Read(conf any) error {
-	pair, _, err := a.kv.List(a.conf.Path, nil)
+func (a *ConsulReader) read(ctx context.Context, conf any, path string) error {
+	data, _, err := a.kv.Get(path, nil)
 	if err != nil {
+		logger.Error(ctx, "Error reading from zookeeper : %v", err)
 		return err
 	}
-	m := make(map[string]string)
-	cfg := make(map[string]any)
-
-	for _, kv := range pair {
-		if len(kv.Value) == 0 {
-			continue
-		}
-		_key := strings.ReplaceAll(kv.Key, a.conf.Path+"/", "")
-		if _key != "" {
-			m[_key] = strings.TrimSpace(string(kv.Value))
-			insertMap(cfg, strings.Split(_key, "/"), len(strings.Split(_key, "/")), kv.Value)
-		}
+	if data == nil {
+		return nil
 	}
-	err = mapstructure.Decode(cfg, conf)
+	err = yaml.Unmarshal(data.Value, conf)
 	if err != nil {
-		logger.Error(context.Background(), fmt.Sprintln("Error decoding config : ", err))
+		logger.Error(ctx, "Error unmarshalling yaml for path: %s, data : %v", path, err)
 		return err
 	}
-
-	go a.lookForChange(conf, m, cfg)
 	return nil
 }
 
-func (a *ConsulReader) lookForChange(conf any, memory map[string]string, cfg map[string]any) error {
-	if a.conf.RefreshInSecs == 0 {
-		a.conf.RefreshInSecs = 30
+func (a *ConsulReader) readRecursively(ctx context.Context, conf any, path string) error {
+	v := reflect.ValueOf(conf)
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
 	}
+	t := v.Type()
+	if t.Kind() == reflect.Struct {
+		for i := 0; i < t.NumField(); i++ {
+
+			field := t.Field(i)
+			fieldValue := v.Field(i)
+			if !fieldValue.CanInterface() {
+				continue
+			}
+			childrenTag := field.Tag.Get("children")
+			configPath := field.Tag.Get("path")
+
+			if childrenTag == "true" {
+				ptr := fieldValue.Addr()
+				if fieldValue.Kind() == reflect.Ptr && fieldValue.IsNil() {
+					fieldValue.Set(reflect.New(fieldValue.Type().Elem()))
+					ptr = fieldValue
+				}
+				if err := a.readRecursively(ctx, ptr.Interface(), path+"/"+configPath); err != nil {
+					return err
+				}
+			}
+
+			if configPath != "" {
+				var ptr reflect.Value
+				if fieldValue.CanAddr() {
+					ptr = fieldValue.Addr()
+				} else {
+					logger.Warn(ctx, "filed %s has `path` but its not exported path : %s", fieldValue.Kind().String(), configPath)
+					continue
+				}
+				a.read(ctx, ptr.Interface(), path+"/"+configPath)
+			}
+		}
+	}
+
+	return a.read(ctx, conf, path)
+}
+
+func (a *ConsulReader) Read(ctx context.Context, conf any) error {
+	err := a.readRecursively(ctx, conf, a.conf.Path)
+	if err != nil {
+		return err
+	}
+	go a.refresh(ctx, conf)
+	return nil
+}
+
+func (a *ConsulReader) refresh(ctx context.Context, conf any) {
+	if a.conf.RefreshInSecs == 0 {
+		return
+	}
+
+	ticker := time.NewTicker(time.Duration(a.conf.RefreshInSecs) * time.Second)
 	for {
-		time.Sleep(time.Duration(a.conf.RefreshInSecs) * time.Second)
-		var changeDetected bool = false
-		pair, _, err := a.kv.List(a.conf.Path, nil)
+		<-ticker.C
+		err := a.readRecursively(ctx, conf, a.conf.Path)
 		if err != nil {
-			logger.Error(context.Background(), fmt.Sprintln("Error reading consul : ", err))
-			continue
-		}
-		for _, kv := range pair {
-			if len(kv.Value) == 0 {
-				continue
-			}
-			_key := strings.ReplaceAll(kv.Key, a.conf.Path+"/", "")
-			if _key != "" && memory[_key] != strings.TrimSpace(string(kv.Value)) {
-				memory[_key] = strings.TrimSpace(string(kv.Value))
-				insertMap(cfg, strings.Split(_key, "/"), len(strings.Split(_key, "/")), kv.Value)
-				logger.Info(context.Background(), "config change detected for %s", _key)
-				changeDetected = true
-			}
-		}
-		if changeDetected {
-			err = mapstructure.Decode(cfg, conf)
-			if err != nil {
-				logger.Error(context.Background(), fmt.Sprintln("Error decoding config : ", err))
-				continue
-			}
+			logger.Error(ctx, "failed to refresh config , %v", err)
 		}
 	}
 }

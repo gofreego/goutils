@@ -1,0 +1,5 @@
+Name: "example"
+Consul:
+  Address: "http://localhost:8500"
+  Token: " " # Consul token
+ReadFromConsul: true

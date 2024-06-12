@@ -4,38 +4,56 @@ import (
 	"context"
 
 	"github.com/gofreego/goutils/configutils/consul"
+	"github.com/gofreego/goutils/configutils/zookeeper"
 	"github.com/spf13/viper"
 )
 
-type Config interface {
-	GetConsulConfig() *consul.Config
+const (
+	CONSUL    = "CONSUL"
+	ZOOKEEPER = "ZOOKEEPER"
+)
+
+type Config struct {
+	Name         string
+	Consul       consul.Config
+	Zookeeper    zookeeper.Config
+	RefreshInSec int
 }
 
-func ReadConfig(ctx context.Context, filename string, config any) error {
+type config interface {
+	GetReaderConfig() *Config
+}
+
+func ReadConfig(ctx context.Context, filename string, conf any) error {
 	// Read the YAML file
 	viper.SetConfigFile(filename)
 	if err := viper.ReadInConfig(); err != nil {
 		return err
 	}
-	err := viper.Unmarshal(config)
+	err := viper.Unmarshal(conf)
 	if err != nil {
 		return err
 	}
 
 	// check if config implements Config
-	cfg, ok := config.(Config)
+	cfg, ok := conf.(config)
 	if !ok {
 		return nil
 	}
-	if cfg.GetConsulConfig().ReadFromConsul {
-		agent, err := consul.NewConsulReader(ctx, cfg.GetConsulConfig())
+	readerConfig := cfg.GetReaderConfig()
+	switch readerConfig.Name {
+	case CONSUL:
+		agent, err := consul.NewConsulReader(ctx, &readerConfig.Consul)
 		if err != nil {
 			return err
 		}
-		err = agent.Read(config)
+		return agent.Read(ctx, conf)
+	case ZOOKEEPER:
+		agent, err := zookeeper.NewZookeeperReader(ctx, &readerConfig.Zookeeper)
 		if err != nil {
 			return err
 		}
+		return agent.Read(ctx, conf)
 	}
 	return nil
 }
