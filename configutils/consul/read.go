@@ -37,6 +37,7 @@ func NewConsulReader(ctx context.Context, config *Config) (*ConsulReader, error)
 }
 
 func (a *ConsulReader) read(ctx context.Context, conf any, path string) error {
+	logger.Debug(ctx, "Reading from consul path : %s", path)
 	data, _, err := a.kv.Get(path, nil)
 	if err != nil {
 		logger.Error(ctx, "Error reading from zookeeper : %v", err)
@@ -81,15 +82,20 @@ func (a *ConsulReader) readRecursively(ctx context.Context, conf any, path strin
 				}
 			}
 
+			if !fieldValue.CanAddr() {
+				logger.Warn(ctx, "filed %s has `path` but its not exported path : %s", fieldValue.Kind().String(), configPath)
+				continue
+			}
+			ptr := fieldValue.Addr()
+			var err error
 			if configPath != "" {
-				var ptr reflect.Value
-				if fieldValue.CanAddr() {
-					ptr = fieldValue.Addr()
-				} else {
-					logger.Warn(ctx, "filed %s has `path` but its not exported path : %s", fieldValue.Kind().String(), configPath)
-					continue
-				}
-				a.read(ctx, ptr.Interface(), path+"/"+configPath)
+				err = a.read(ctx, ptr.Interface(), path+"/"+configPath)
+			} else {
+				err = a.read(ctx, ptr.Interface(), path+"/"+field.Name)
+			}
+
+			if err != nil {
+				return err
 			}
 		}
 	}

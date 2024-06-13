@@ -14,10 +14,9 @@ const (
 )
 
 type Config struct {
-	Name         string
-	Consul       consul.Config
-	Zookeeper    zookeeper.Config
-	RefreshInSec int
+	Name      string
+	Consul    consul.Config
+	Zookeeper zookeeper.Config
 }
 
 type config interface {
@@ -40,16 +39,22 @@ func ReadConfig(ctx context.Context, filename string, conf any) error {
 	if !ok {
 		return nil
 	}
-	readerConfig := cfg.GetReaderConfig()
-	switch readerConfig.Name {
+
+	// Read from the agent
+	return ReadFromAgent(ctx, cfg.GetReaderConfig(), conf)
+}
+
+func ReadFromAgent(ctx context.Context, cfg *Config, conf any) error {
+
+	switch cfg.Name {
 	case CONSUL:
-		agent, err := consul.NewConsulReader(ctx, &readerConfig.Consul)
+		agent, err := consul.NewConsulReader(ctx, &cfg.Consul)
 		if err != nil {
 			return err
 		}
 		return agent.Read(ctx, conf)
 	case ZOOKEEPER:
-		agent, err := zookeeper.NewZookeeperReader(ctx, &readerConfig.Zookeeper)
+		agent, err := zookeeper.NewZookeeperReader(ctx, &cfg.Zookeeper)
 		if err != nil {
 			return err
 		}

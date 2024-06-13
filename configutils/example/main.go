@@ -1,44 +1,45 @@
-package example
+package main
 
 import (
 	"context"
-	"fmt"
-	"time"
 
+	"github.com/gofreego/goutils/configutils"
 	"github.com/gofreego/goutils/configutils/consul"
 	"github.com/gofreego/goutils/logger"
+	"gopkg.in/yaml.v3"
 )
 
-type conf struct {
-	Name   string  `json:"name"`
-	Int    int     `json:"int"`
-	Float  float64 `json:"float"`
-	Struct struct {
-		Name string `json:"name"`
-		Int  int    `json:"int"`
-	} `json:"struct"`
+type Configuration struct {
+	Name    string `yaml:"Name" path:"Name"`
+	Age     int    `yaml:"Age"`
+	Student struct {
+		Name   string `yaml:"Name"`
+		Age    int    `yaml:"Age"`
+		School struct {
+			Name     string `yaml:"Name"`
+			Location string `yaml:"Location"`
+		} `yaml:"School" path:"school"`
+	} `yaml:"Student" children:"true" path:"student"`
+}
+
+func (c *Configuration) GetReaderConfig() *configutils.Config {
+	return &configutils.Config{
+		Name: "CONSUL",
+		Consul: consul.Config{
+			Address:       "localhost:8500",
+			Path:          "/configs/test",
+			RefreshInSecs: 1,
+		},
+	}
 }
 
 func main() {
-	config := consul.Config{
-		Address:       "http://localhost:8500",
-		Path:          "configs/test",
-		RefreshInSecs: 2,
-	}
+	k := Configuration{}
 	ctx := context.Background()
-	reader, err := consul.NewConsulReader(ctx, &config)
+	err := configutils.ReadFromAgent(ctx, k.GetReaderConfig(), &k)
 	if err != nil {
-		logger.Error(ctx, fmt.Sprintln("Error creating consul reader : ", err))
-		return
+		panic(err)
 	}
-	var c conf
-	err = reader.Read(&c)
-	if err != nil {
-		logger.Error(ctx, fmt.Sprintln("Error reading consul : ", err))
-		return
-	}
-	for {
-		time.Sleep(1 * time.Second)
-		logger.Info(ctx, "%v", c)
-	}
+	bytes, _ := yaml.Marshal(k)
+	logger.Info(ctx, "\n%s", bytes)
 }
