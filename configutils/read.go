@@ -2,6 +2,7 @@ package configutils
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/gofreego/goutils/configutils/consul"
 	"github.com/gofreego/goutils/configutils/zookeeper"
@@ -21,6 +22,8 @@ type Config struct {
 
 type config interface {
 	GetReaderConfig() *Config
+	GetServiceName() string
+	GetEnv() string
 }
 
 func ReadConfig(ctx context.Context, filename string, conf any) error {
@@ -39,9 +42,12 @@ func ReadConfig(ctx context.Context, filename string, conf any) error {
 	if !ok {
 		return nil
 	}
+	readerCfg := cfg.GetReaderConfig()
 
+	readerCfg.Consul.Path += fmt.Sprintf("/%s/%s", cfg.GetEnv(), cfg.GetServiceName())
+	readerCfg.Zookeeper.Path += fmt.Sprintf("/%s/%s", cfg.GetEnv(), cfg.GetServiceName())
 	// Read from the agent
-	return ReadFromAgent(ctx, cfg.GetReaderConfig(), conf)
+	return ReadFromAgent(ctx, readerCfg, conf)
 }
 
 func ReadFromAgent(ctx context.Context, cfg *Config, conf any) error {
