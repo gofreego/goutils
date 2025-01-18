@@ -43,7 +43,9 @@ func ReadConfig(ctx context.Context, filename string, conf any) error {
 		return nil
 	}
 	readerCfg := cfg.GetReaderConfig()
-
+	if readerCfg == nil {
+		return nil
+	}
 	readerCfg.Consul.Path += fmt.Sprintf("/%s/%s", cfg.GetEnv(), cfg.GetServiceName())
 	readerCfg.Zookeeper.Path += fmt.Sprintf("/%s/%s", cfg.GetEnv(), cfg.GetServiceName())
 	// Read from the agent
