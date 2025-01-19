@@ -19,7 +19,7 @@ type MiddleLayer func(ctx context.Context, msg string, fields *Fields) (context.
 
 // Build : if prod it will set to prod else dev
 type Config struct {
-	AppName string
-	Build   string
-	Level   LogLevel
+	AppName string   `yaml:"AppName"`
+	Build   string   `yaml:"Build"`
+	Level   LogLevel `yaml:"Level"`
 }
