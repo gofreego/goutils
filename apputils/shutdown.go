@@ -9,11 +9,6 @@ import (
 	"github.com/gofreego/goutils/logger"
 )
 
-type Application interface {
-	Name() string
-	Shutdown(ctx context.Context)
-}
-
 func GracefulShutdown(ctx context.Context, apps ...Application) {
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
