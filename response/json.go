@@ -17,7 +17,7 @@ func WriteError(ctx *gin.Context, err error) {
 	errStr := "something went wrong"
 	if customErr, ok := err.(*customerrors.Error); ok {
 		errStr = customErr.Error()
-		ctx.JSON(customErr.Code, &Response{Error: &errStr})
+		ctx.JSON(customErr.Code(), &Response{Error: &errStr})
 		return
 	}
 	ctx.JSON(http.StatusInternalServerError, &Response{Error: &errStr})
