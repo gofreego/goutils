@@ -23,10 +23,24 @@ func WriteError(ctx *gin.Context, err error) {
 	ctx.JSON(http.StatusInternalServerError, &Response{Error: &errStr})
 }
 
-func WriteSuccess(ctx *gin.Context, data any) {
+var successStatusCodesMap = map[int]bool{
+	http.StatusOK:        true,
+	http.StatusCreated:   true,
+	http.StatusAccepted:  true,
+	http.StatusNoContent: true,
+}
+
+func WriteSuccess(ctx *gin.Context, data any, statusCode ...int) {
+	code := http.StatusOK
+	if len(statusCode) > 0 {
+		if _, ok := successStatusCodesMap[statusCode[0]]; ok {
+			code = statusCode[0]
+		}
+	}
+
 	if msg, ok := data.(string); ok {
-		ctx.JSON(http.StatusOK, &Response{Message: &msg})
+		ctx.JSON(code, &Response{Message: &msg})
 		return
 	}
-	ctx.JSON(http.StatusOK, &Response{Data: data})
+	ctx.JSON(code, &Response{Data: data})
 }
