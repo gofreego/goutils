@@ -65,3 +65,24 @@ func (a *ZookeeperReader) Read(ctx context.Context, path string, conf any, confi
 	}
 	return nil
 }
+
+// Update updates the configuration in zookeeper
+// path : path in zookeeper to update the configuration
+// conf : configuration object to marshal the data from
+// configFormat : format of the configuration data
+// returns error if any
+// returns nil if successful
+func (a *ZookeeperReader) Update(ctx context.Context, path string, conf any, configFormat ...common.ConfigFormatType) error {
+	bytes, err := common.Marshal(conf, configFormat...)
+	if err != nil {
+		logger.Error(ctx, "Error marshalling for path: %s, err: %v", path, err)
+		return err
+	}
+
+	_, err = a.conn.Set(path, bytes, -1)
+	if err != nil {
+		logger.Error(ctx, "Error writing to zookeeper : %v", err)
+		return err
+	}
+	return nil
+}

@@ -19,3 +19,7 @@ func NewDatabaseReader(ctx context.Context, cfg *Config) (*DatabaseConfigReader,
 func (d *DatabaseConfigReader) Read(ctx context.Context, path string, conf any, configFormat ...common.ConfigFormatType) error {
 	panic("method unimplemented")
 }
+
+func (d *DatabaseConfigReader) Update(ctx context.Context, path string, conf any, configFormat ...common.ConfigFormatType) error {
+	panic("method unimplemented")
+}

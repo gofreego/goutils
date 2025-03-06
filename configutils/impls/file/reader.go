@@ -43,3 +43,25 @@ func (a *FileConfigReader) Read(ctx context.Context, path string, conf any, conf
 	}
 	return nil
 }
+
+// Update updates the configuration in the file
+// path : path in file to update the configuration
+// conf : configuration object to marshal the data from
+// configFormat : format of the configuration data
+// returns error if any
+// returns nil if successful
+func (a *FileConfigReader) Update(ctx context.Context, path string, conf any, configFormat ...common.ConfigFormatType) error {
+	path = a.cfg.Path + path
+	bytes, err := common.Marshal(conf, configFormat...)
+	if err != nil {
+		logger.Error(ctx, "error marshalling for path: %s, err: %v", path, err)
+		return err
+	}
+
+	err = os.WriteFile(path, bytes, os.ModePerm)
+	if err != nil {
+		logger.Error(ctx, "error writing to file : %v", err)
+		return err
+	}
+	return nil
+}

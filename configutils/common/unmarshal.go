@@ -23,3 +23,18 @@ func Unmarshal(data []byte, conf any, cft ...ConfigFormatType) error {
 	}
 	return ErrConfigFormatNotSupported
 }
+
+func Marshal(conf any, cft ...ConfigFormatType) ([]byte, error) {
+	t := ConfigFormatYAML
+	if len(cft) > 0 {
+		t = cft[0]
+	}
+
+	switch t {
+	case ConfigFormatJSON:
+		return json.Marshal(conf)
+	case ConfigFormatYAML:
+		return yaml.Marshal(conf)
+	}
+	return nil, ErrConfigFormatNotSupported
+}

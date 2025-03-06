@@ -44,10 +44,10 @@ func NewConsulConfigReader(ctx context.Context, config *Config) (*ConsulConfigRe
 // returns nil if successful
 func (a *ConsulConfigReader) Read(ctx context.Context, path string, conf any, configFormat ...common.ConfigFormatType) error {
 	path = a.cfg.Path + path
-	logger.Debug(ctx, "Reading from consul path : %s", path)
+	logger.Debug(ctx, "reading from consul path : %s", path)
 	data, _, err := a.kv.Get(path, nil)
 	if err != nil {
-		logger.Error(ctx, "Error reading from zookeeper : %v", err)
+		logger.Error(ctx, "Error reading from consul : %v", err)
 		return err
 	}
 	if data == nil {
@@ -57,6 +57,32 @@ func (a *ConsulConfigReader) Read(ctx context.Context, path string, conf any, co
 	err = common.Unmarshal(data.Value, conf, configFormat...)
 	if err != nil {
 		logger.Error(ctx, "Error unmarshalling yaml for path: %s, data : %v", path, err)
+		return err
+	}
+	return nil
+}
+
+// Update updates the configuration in consul
+// path : path in consul to update the configuration
+// conf : configuration object to marshal the data from
+// configFormat : format of the configuration data
+// returns error if any
+// returns nil if successful
+func (a *ConsulConfigReader) Update(ctx context.Context, path string, conf any, configFormat ...common.ConfigFormatType) error {
+	path = a.cfg.Path + path
+	logger.Debug(ctx, "updating consul path : %s", path)
+	data, err := common.Marshal(conf, configFormat...)
+	if err != nil {
+		logger.Error(ctx, "Error marshalling data : %v", err)
+		return err
+	}
+
+	_, err = a.kv.Put(&api.KVPair{
+		Key:   path,
+		Value: data,
+	}, nil)
+	if err != nil {
+		logger.Error(ctx, "Error updating consul : %v", err)
 		return err
 	}
 	return nil

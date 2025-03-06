@@ -1,0 +1,8 @@
+name: config-reader-example
+reader:
+  name: consul
+  consul:
+    address: localhost:8500
+    path: configs/test
+    token: "pavanyewale"
+application: "test"
