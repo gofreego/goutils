@@ -15,8 +15,6 @@ const (
 	CONFIG_TAG_DESCRIPTION ConfigTag = "description"
 	// CONFIG_TAG_TYPE is the tag for the type of the configuration. It is required
 	CONFIG_TAG_TYPE ConfigTag = "type"
-	// CONFIG_TAG_DEFAULT is the tag for the default value of the configuration. It is optional
-	CONFIG_TAG_DEFAULT ConfigTag = "default"
 	// CONFIG_TAG_REQUIRED is the tag for the required value of the configuration. It should be true or false. It will be false by default.
 	CONFIG_TAG_REQUIRED ConfigTag = "required"
 	// CONFIG_TAG_CHOICES is the tag for the choices of the configuration. It is required if the type is choice.
@@ -38,6 +36,8 @@ const (
 	CONFIG_TYPE_BIG_TEXT ConfigType = "big_text"
 	// CONFIG_TYPE_CHOICE is the type for choice configuration, it will show a dropdown on ui and it should have type string.
 	CONFIG_TYPE_CHOICE ConfigType = "choice"
+	//CONFIG_TYPE_PARENT
+	CONFIG_TYPE_PARENT ConfigType = "parent"
 )
 
 type Config struct {
