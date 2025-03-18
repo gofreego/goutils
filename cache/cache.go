@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/gofreego/goutils/cache/memory"
 	"github.com/gofreego/goutils/cache/redis"
 )
 
 const (
-	REDIS = "redis"
+	REDIS  = "redis"
+	MEMORY = "memory"
 )
 
 type Cache interface {
@@ -28,6 +30,8 @@ func NewCache(ctx context.Context, conf *Config) Cache {
 	switch conf.Name {
 	case REDIS:
 		return redis.NewCache(ctx, &conf.Redis)
+	case MEMORY:
+		return memory.NewCache()
 	}
 	panic(fmt.Sprintf("invalid cache name, provided %s ,expected : %s", conf.Name, REDIS))
 }

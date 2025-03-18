@@ -6,19 +6,6 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-
-	"github.com/gofreego/goutils/datastructure"
-)
-
-var (
-	// configTypesSet is a set of all valid config types.
-	configTypesSet datastructure.Set[ConfigType] = datastructure.NewSet(
-		CONFIG_TYPE_STRING,
-		CONFIG_TYPE_INTEGER,
-		CONFIG_TYPE_BOOLEAN,
-		CONFIG_TYPE_JSON,
-		CONFIG_TYPE_BIG_TEXT,
-	)
 )
 
 func parseTags(ctx context.Context, cfg any) ([]ConfigObject, error) {
@@ -47,7 +34,7 @@ func parseTags(ctx context.Context, cfg any) ([]ConfigObject, error) {
 		}
 		configObj := ConfigObject{
 			Name:        field.Tag.Get(string(CONFIG_TAG_NAME)),
-			Type:        field.Tag.Get(string(CONFIG_TAG_TYPE)),
+			Type:        ConfigType(field.Tag.Get(string(CONFIG_TAG_TYPE))),
 			Description: field.Tag.Get(string(CONFIG_TAG_DESCRIPTION)),
 			Required:    field.Tag.Get(string(CONFIG_TAG_REQUIRED)) == "true",
 		}
@@ -56,7 +43,7 @@ func parseTags(ctx context.Context, cfg any) ([]ConfigObject, error) {
 			configObj.Choices = parseChoices(choices)
 		}
 
-		if configObj.Type == string(CONFIG_TYPE_PARENT) {
+		if configObj.Type == CONFIG_TYPE_PARENT {
 			configObj.Childrens, err = parseTags(ctx, value.Interface())
 			if err != nil {
 				return nil, err
@@ -76,11 +63,16 @@ func parseChoices(choices string) []string {
 }
 
 func marshal(ctx context.Context, cfg any) (string, error) {
-	object, err := parseTags(ctx, cfg)
+	objects, err := parseTags(ctx, cfg)
 	if err != nil {
 		return "", err
 	}
-	bytes, err := json.Marshal(object)
+	for _, obj := range objects {
+		if err := obj.Validate(); err != nil {
+			return "", err
+		}
+	}
+	bytes, err := json.Marshal(objects)
 	if err != nil {
 		return "", err
 	}

@@ -26,8 +26,8 @@ type ConfigType string
 const (
 	// CONFIG_TYPE_STRING is the type for string configuration, it will show a textbox on ui.
 	CONFIG_TYPE_STRING ConfigType = "string"
-	// CONFIG_TYPE_INTEGER is the type for integer configuration, it will show a number input on ui.
-	CONFIG_TYPE_INTEGER ConfigType = "number"
+	// CONFIG_TYPE_NUMBER is the type for integer configuration, it will show a number input on ui.
+	CONFIG_TYPE_NUMBER ConfigType = "number"
 	// CONFIG_TYPE_BOOLEAN is the type for boolean configuration, it will show a checkbox on ui.
 	CONFIG_TYPE_BOOLEAN ConfigType = "boolean"
 	// CONFIG_TYPE_JSON is the type for json configuration, it will show a textarea on ui which will have json formatting.
@@ -50,14 +50,18 @@ type Config struct {
 }
 
 type Repository interface {
-	GetConfig(ctx context.Context, key string) (Config, error)
-	SaveConfig(ctx context.Context, value Config) error
+	// GetConfig will return the value of the configuration for the given key. It will return an empty string if the configuration is not found.
+	// it will return an error if there is an issue with the repository.
+	GetConfig(ctx context.Context, key string) (string, error)
+	// SaveConfig will save the configuration with the given key and value. It will return an error if there is an issue with the repository.
+	SaveConfig(ctx context.Context, key, value string) error
 }
 
 // RouteRegistrar defines a generic function type for registering routes.
 type RouteRegistrar func(method, path string, handler http.HandlerFunc) error
 
 type config interface {
+	// Key is the unique key by which you want to save the configuration.
 	Key() string
 }
 
@@ -65,4 +69,8 @@ type ConfigManager interface {
 	RegisterConfig(ctx context.Context, cfg config) error
 	RegisterRoute(ctx context.Context, registerFunc RouteRegistrar) error
 	Get(ctx context.Context, cfg config) error
+}
+
+func New(ctx context.Context, repo Repository) (ConfigManager, error) {
+	return newConfigManager(ctx, repo)
 }
