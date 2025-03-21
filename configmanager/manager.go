@@ -2,6 +2,7 @@ package configmanager
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 )
 
@@ -38,6 +39,8 @@ const (
 	CONFIG_TYPE_CHOICE ConfigType = "choice"
 	//CONFIG_TYPE_PARENT
 	CONFIG_TYPE_PARENT ConfigType = "parent"
+	//CONFIG_TYPE_LIST
+	CONFIG_TYPE_LIST ConfigType = "list"
 )
 
 type Config struct {
@@ -45,16 +48,16 @@ type Config struct {
 	Value string
 	// UpdatedBy is the user who updated the configuration. It will taken from header (X-User-Id) of the request. it will be empty if header is not present.
 	UpdatedBy string
-	UpdatedAt string
-	CreatedAt string
+	UpdatedAt int64
+	CreatedAt int64
 }
 
 type Repository interface {
-	// GetConfig will return the value of the configuration for the given key. It will return an empty string if the configuration is not found.
+	// GetConfig will return the value of the configuration for the given key. It will return nil if the configuration is not found.
 	// it will return an error if there is an issue with the repository.
-	GetConfig(ctx context.Context, key string) (string, error)
+	GetConfig(ctx context.Context, key string) (*Config, error)
 	// SaveConfig will save the configuration with the given key and value. It will return an error if there is an issue with the repository.
-	SaveConfig(ctx context.Context, key, value string) error
+	SaveConfig(ctx context.Context, cfg *Config) error
 }
 
 // RouteRegistrar defines a generic function type for registering routes.
@@ -65,12 +68,39 @@ type config interface {
 	Key() string
 }
 
+type ConfigManagerConfig struct {
+	ServiceName         string `name:"service_name" type:"string" description:"service name" required:"true"`
+	CacheTimeoutMinutes int    `name:"cache_timeout_minutes" type:"number" description:"cache timeout in minutes for config manager" required:"true"`
+}
+
+func (c *ConfigManagerConfig) withDefault() {
+	if c.ServiceName == "" {
+		c.ServiceName = "config-manager"
+	}
+	if c.CacheTimeoutMinutes == 0 {
+		c.CacheTimeoutMinutes = 5
+	}
+}
+
+func (c *ConfigManagerConfig) Key() string {
+	return "config-manager-config"
+}
+
 type ConfigManager interface {
+	// It will register the config in manager, it will save the config in repo if not already present with default values.
 	RegisterConfig(ctx context.Context, cfg config) error
+	// RegisterRoute will register the necesory endpoints for the configuration manager. using the provided RouteRegistrar.
 	RegisterRoute(ctx context.Context, registerFunc RouteRegistrar) error
+	// Get will return the configuration for the given key. It will return an error if the configuration is not found. It expects the pointer to the config object which implements config interface.
 	Get(ctx context.Context, cfg config) error
 }
 
-func New(ctx context.Context, repo Repository) (ConfigManager, error) {
-	return newConfigManager(ctx, repo)
+func New(ctx context.Context, cfg *ConfigManagerConfig, repo Repository) (ConfigManager, error) {
+	if cfg == nil {
+		cfg = &ConfigManagerConfig{}
+	}
+	if repo == nil {
+		return nil, fmt.Errorf("repository is required, got nil")
+	}
+	return newConfigManager(ctx, cfg, repo)
 }

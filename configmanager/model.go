@@ -1,7 +1,10 @@
 package configmanager
 
 import (
+	"reflect"
+
 	"github.com/gofreego/goutils/customerrors"
+	"github.com/gofreego/goutils/utils"
 )
 
 type ConfigObject struct {
@@ -27,7 +30,8 @@ func (co ConfigObject) Validate() error {
 				return customerrors.BAD_REQUEST_ERROR("config %s has invalid value type %T, Expect: string", co.Name, co.Value)
 			}
 		case CONFIG_TYPE_NUMBER:
-			if _, ok := co.Value.(float64); !ok {
+			typ := reflect.TypeOf(co.Value).Kind()
+			if utils.NotIn[reflect.Kind](typ, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64) {
 				return customerrors.BAD_REQUEST_ERROR("config %s has invalid value type %T, Expect: number", co.Name, co.Value)
 			}
 		case CONFIG_TYPE_BOOLEAN:

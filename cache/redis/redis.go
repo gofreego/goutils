@@ -40,11 +40,6 @@ func NewCache(ctx context.Context, conf *Config) *Cache {
 	return &Cache{conn: client}
 }
 
-// Get implements cache.Cache.
-func (c *Cache) Get(ctx context.Context, key string) (string, error) {
-	return c.conn.Get(ctx, key).Result()
-}
-
 // GetV implements cache.Cache.
 func (c *Cache) GetV(ctx context.Context, key string, value any) error {
 	v, err := c.conn.Get(ctx, key).Result()

@@ -40,14 +40,6 @@ func NewCache() *Cache {
 	return cache
 }
 
-func (c *Cache) Get(ctx context.Context, key string) (string, error) {
-	v, ok := c.cache[key]
-	if !ok {
-		return "", nil
-	}
-	return v.value.(string), nil
-}
-
 func (c *Cache) GetV(ctx context.Context, key string, value any) error {
 	v, ok := c.cache[key]
 	if !ok {
