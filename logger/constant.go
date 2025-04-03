@@ -21,3 +21,13 @@ const (
 	defaultStyle   = "\x1b[0m"
 	lightGrayColor = "\x1b[30m"
 )
+
+type Build string
+
+const (
+	// BuildProd : prod build
+	BuildProd Build = "prod"
+	// BuildDev : dev build
+	BuildDev Build = "dev"
+	// BuildTest : test build
+)
