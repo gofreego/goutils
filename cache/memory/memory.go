@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gofreego/goutils/datastructure"
+	"github.com/gofreego/ds"
 )
 
 type object struct {
@@ -15,26 +15,20 @@ type object struct {
 	expriry time.Time
 }
 
-func compare(a, b *object) int {
-	if a.expriry.Before(b.expriry) {
-		return -1
-	}
-	if a.expriry.After(b.expriry) {
-		return 1
-	}
-	return 0
+func less(a, b *object) bool {
+	return a.expriry.Before(b.expriry)
 }
 
 type Cache struct {
 	cache   map[string]*object
-	minHeap datastructure.Heap[*object]
+	minHeap ds.Heap[*object]
 }
 
 func NewCache() *Cache {
 
 	cache := &Cache{
 		cache:   make(map[string]*object),
-		minHeap: datastructure.NewHeap(datastructure.MinHeap, compare),
+		minHeap: ds.NewHeap(ds.MinHeap, less),
 	}
 	go cache.autoRemoveExpiredKeys()
 	return cache
@@ -65,7 +59,7 @@ func (c *Cache) Set(ctx context.Context, key string, value any) error {
 		expriry: time.Now().Add(time.Hour * 87600),
 	}
 	c.cache[key] = &v
-	c.minHeap.Insert(&v)
+	c.minHeap.Push(&v)
 	return nil
 }
 
@@ -76,23 +70,19 @@ func (c *Cache) SetWithTimeout(ctx context.Context, key string, value any, timeo
 		expriry: time.Now().Add(timeout),
 	}
 	c.cache[key] = &v
-	c.minHeap.Insert(&v)
+	c.minHeap.Push(&v)
 	return nil
 }
 
 func (c *Cache) autoRemoveExpiredKeys() {
 	for {
-		if c.minHeap.Len() == 0 {
+		if c.minHeap.Size() == 0 {
 			time.Sleep(time.Second)
 			continue
 		}
-		obj, err := c.minHeap.Peek()
-		if err != nil {
-			time.Sleep(time.Second)
-			continue
-		}
+		obj := c.minHeap.Top()
 		if obj.expriry.Before(time.Now()) {
-			c.minHeap.Extract()
+			c.minHeap.Pop()
 			delete(c.cache, obj.key)
 		} else {
 			time.Sleep(time.Second)
