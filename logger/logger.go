@@ -12,7 +12,7 @@ var (
 func init() {
 	// Initialize the logger with default configuration
 	var err error
-	internalLogger, err = NewLogger(&Config{AppName: "default", Build: "dev"})
+	internalLogger, err = NewLogger(&Config{AppName: "default", Build: "dev", skipLevels: 2})
 	if err != nil {
 		panic(fmt.Sprintf("failed to initialize logger: %v", err))
 	}
@@ -20,6 +20,7 @@ func init() {
 
 func (c Config) InitiateLogger() error {
 	var err error
+	c.skipLevels = 2
 	internalLogger, err = NewLogger(&c)
 	return err
 }

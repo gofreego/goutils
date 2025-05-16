@@ -78,7 +78,10 @@ func (l *logger) ChangeConfig(config *Config) error {
 
 	zapConfig.EncoderConfig = encoderConfig
 	l.appNameField.String = config.AppName
-	l.zapLogger, err = zapConfig.Build(zap.AddStacktrace(zapcore.ErrorLevel), zap.AddCallerSkip(1))
+	if config.skipLevels <= 0 {
+		config.skipLevels = 1
+	}
+	l.zapLogger, err = zapConfig.Build(zap.AddStacktrace(zapcore.ErrorLevel), zap.AddCallerSkip(config.skipLevels))
 	return err
 }
 
