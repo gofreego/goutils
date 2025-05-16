@@ -37,7 +37,10 @@ func NewLogger(config *Config, middleLayers ...MiddleLayer) (Logger, error) {
 
 	zapConfig.EncoderConfig = encoderConfig
 	appNameField := zap.Field{Key: "App", Type: zapcore.StringType, String: "default"}
-	zapLogger, err := zapConfig.Build(zap.AddStacktrace(zapcore.ErrorLevel), zap.AddCallerSkip(1))
+	if config.skipLevels <= 0 {
+		config.skipLevels = 1
+	}
+	zapLogger, err := zapConfig.Build(zap.AddStacktrace(zapcore.ErrorLevel), zap.AddCallerSkip(config.skipLevels))
 	if err != nil {
 		return nil, err
 	}
