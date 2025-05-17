@@ -2,14 +2,14 @@ package logger
 
 const (
 	// key constants
-	timeKey      = "TimeStamp"
-	requestIDKey = "RequestID"
-	callerKey    = "Caller"
-	clientKey    = "Client"
-	userIDKey    = "UserID"
-	uriKey       = "URI"
-	ipKey        = "IP"
-	methodKey    = "Method"
+	timeKey      = "timeStamp"
+	requestIDKey = "requestId"
+	callerKey    = "caller"
+	clientKey    = "client"
+	userIDKey    = "userId"
+	uriKey       = "uri"
+	ipKey        = "ip"
+	methodKey    = "method"
 )
 
 type Build string
