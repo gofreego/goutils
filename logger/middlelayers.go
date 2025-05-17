@@ -2,7 +2,6 @@ package logger
 
 import (
 	"context"
-	"time"
 )
 
 func RequestMiddleLayer(ctx context.Context, msg string, fields *Fields) (context.Context, string, *Fields) {
@@ -10,11 +9,24 @@ func RequestMiddleLayer(ctx context.Context, msg string, fields *Fields) (contex
 	if !rcOk {
 		return ctx, msg, fields
 	}
-	fields.AddField(requestIDKey, vRc.RequestID)
-	fields.AddField(appIDKey, vRc.ClientAppID)
-	fields.AddField(userIDKey, vRc.UserID)
-	fields.AddField(uriKey, vRc.URI)
-	fields.AddField(ipKey, vRc.IP)
+	if vRc.RequestID != "" {
+		fields.AddField(requestIDKey, vRc.RequestID)
+	}
+	if vRc.AppID != "" {
+		fields.AddField(appIDKey, vRc.AppID)
+	}
+	if vRc.UserID != "" {
+		fields.AddField(userIDKey, vRc.UserID)
+	}
+	if vRc.Method != "" {
+		fields.AddField(callerKey, vRc.Method)
+	}
+	if vRc.URI != "" {
+		fields.AddField(uriKey, vRc.URI)
+	}
+	if vRc.IP != "" {
+		fields.AddField(ipKey, vRc.IP)
+	}
 	return ctx, msg, fields
 }
 
@@ -23,13 +35,10 @@ const (
 )
 
 type RequestContext struct {
-	SessionID     string
-	RequestID     string
-	ClientAppID   string
-	UserID        string
-	TransactionID string
-	Method        string
-	URI           string
-	APIStartTime  time.Time
-	IP            string
+	RequestID string
+	AppID     string
+	UserID    string
+	Method    string
+	URI       string
+	IP        string
 }
