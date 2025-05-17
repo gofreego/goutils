@@ -4,8 +4,8 @@ const (
 	// key constants
 	timeKey      = "TimeStamp"
 	requestIDKey = "RequestID"
-	callerKey    = "caller"
-	appIDKey     = "AppId"
+	callerKey    = "Caller"
+	clientKey    = "Client"
 	userIDKey    = "UserID"
 	uriKey       = "URI"
 	ipKey        = "IP"

@@ -16,8 +16,8 @@ func RequestMiddleLayer(ctx context.Context, msg string, fields *Fields) (contex
 	if vRc.RequestID != "" {
 		fields.AddField(requestIDKey, vRc.RequestID)
 	}
-	if vRc.AppID != "" {
-		fields.AddField(appIDKey, vRc.AppID)
+	if vRc.Client != "" {
+		fields.AddField(clientKey, vRc.Client)
 	}
 	if vRc.UserID != "" {
 		fields.AddField(userIDKey, vRc.UserID)
@@ -67,7 +67,7 @@ const (
 
 type RequestContext struct {
 	RequestID string
-	AppID     string
+	Client    string
 	UserID    string
 	Method    string
 	URI       string
