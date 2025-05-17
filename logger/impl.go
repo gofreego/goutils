@@ -36,7 +36,7 @@ func NewLogger(config *Config, middleLayers ...MiddleLayer) (Logger, error) {
 	zapConfig.DisableStacktrace = true
 
 	zapConfig.EncoderConfig = encoderConfig
-	appNameField := zap.Field{Key: "App", Type: zapcore.StringType, String: "default"}
+	appNameField := zap.Field{Key: "App", Type: zapcore.StringType, String: config.AppName}
 	if config.skipLevels <= 0 {
 		config.skipLevels = 1
 	}
