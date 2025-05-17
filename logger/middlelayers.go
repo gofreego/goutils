@@ -30,8 +30,10 @@ func RequestMiddleLayer(ctx context.Context, msg string, fields *Fields) (contex
 	return ctx, msg, fields
 }
 
+type ContextKey string
+
 const (
-	RequestContextKey string = "RequestContext"
+	RequestContextKey ContextKey = "RequestContext"
 )
 
 type RequestContext struct {
