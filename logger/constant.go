@@ -9,6 +9,7 @@ const (
 	userIDKey    = "UserID"
 	uriKey       = "URI"
 	ipKey        = "IP"
+	methodKey    = "Method"
 )
 
 type Build string
