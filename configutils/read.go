@@ -73,6 +73,9 @@ func ReadConfig(ctx context.Context, path string, conf any) error {
 		return err
 	}
 	if conf, ok := conf.(tConfig); ok {
+		if conf.GetReaderConfig() == nil {
+			return nil
+		}
 		reader, err := NewConfigReader(ctx, conf.GetReaderConfig())
 		if err != nil {
 			return err
