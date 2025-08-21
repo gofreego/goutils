@@ -10,7 +10,7 @@ import (
 )
 
 type Config struct {
-	Host                   string        `yaml:"Host"`
+	Hosts                  string        `yaml:"Host"`
 	Username               string        `yaml:"Username"`
 	Password               string        `yaml:"Password"`
 	Database               string        `yaml:"Database"`
@@ -20,6 +20,8 @@ type Config struct {
 	MaxConnecting          uint64        `yaml:"MaxConnecting"`
 	ConnectTimeout         time.Duration `yaml:"ConnectTimeout"`
 	ServerSelectionTimeout time.Duration `yaml:"ServerSelectionTimeout"`
+	Direct                 bool          `yaml:"Direct"`
+	ReplicaSet             string        `yaml:"ReplicaSet"`
 }
 
 // setDefaultPoolConfig sets default values for connection pool configuration
@@ -42,13 +44,16 @@ func (cfg *Config) withDefault() {
 	if cfg.ServerSelectionTimeout == 0 {
 		cfg.ServerSelectionTimeout = 30 * time.Second // Default server selection timeout
 	}
+	if cfg.ReplicaSet == "" {
+		cfg.ReplicaSet = "rs0" // Default replica set name
+	}
 }
 
 func NewMongoConnection(ctx context.Context, cfg *Config) (*mongo.Client, error) {
 	// Set default pool configuration if not provided
 	cfg.withDefault()
 
-	clientOptions := options.Client().ApplyURI(fmt.Sprintf("mongodb://%s:%s@%s", cfg.Username, cfg.Password, cfg.Host))
+	clientOptions := options.Client().ApplyURI(fmt.Sprintf("mongodb://%s:%s@%s/?replicaSet=%s", cfg.Username, cfg.Password, cfg.Hosts, cfg.ReplicaSet))
 
 	// Configure connection pool settings
 	clientOptions.SetMaxPoolSize(cfg.MaxPoolSize)
@@ -57,8 +62,10 @@ func NewMongoConnection(ctx context.Context, cfg *Config) (*mongo.Client, error)
 	clientOptions.SetMaxConnecting(cfg.MaxConnecting)
 	clientOptions.SetConnectTimeout(cfg.ConnectTimeout)
 	clientOptions.SetServerSelectionTimeout(cfg.ServerSelectionTimeout)
+	if cfg.Direct {
+		clientOptions.SetDirect(true) // Use direct connection if specified
+	}
 
-	// clientOptions.Direct = aws.Bool(true)
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to MongoDB: %w", err)
