@@ -3,20 +3,61 @@ package mongo
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type Config struct {
-	Host     string `yaml:"Host"`
-	Username string `yaml:"Username"`
-	Password string `yaml:"Password"`
-	Database string `yaml:"Database"`
+	Host                   string        `yaml:"Host"`
+	Username               string        `yaml:"Username"`
+	Password               string        `yaml:"Password"`
+	Database               string        `yaml:"Database"`
+	MaxPoolSize            uint64        `yaml:"MaxPoolSize"`
+	MinPoolSize            uint64        `yaml:"MinPoolSize"`
+	MaxConnIdleTime        time.Duration `yaml:"MaxConnIdleTime"`
+	MaxConnecting          uint64        `yaml:"MaxConnecting"`
+	ConnectTimeout         time.Duration `yaml:"ConnectTimeout"`
+	ServerSelectionTimeout time.Duration `yaml:"ServerSelectionTimeout"`
+}
+
+// setDefaultPoolConfig sets default values for connection pool configuration
+func (cfg *Config) withDefault() {
+	if cfg.MaxPoolSize == 0 {
+		cfg.MaxPoolSize = 100 // Default max pool size
+	}
+	if cfg.MinPoolSize == 0 {
+		cfg.MinPoolSize = 5 // Default min pool size
+	}
+	if cfg.MaxConnIdleTime == 0 {
+		cfg.MaxConnIdleTime = 30 * time.Minute // Default max idle time
+	}
+	if cfg.MaxConnecting == 0 {
+		cfg.MaxConnecting = 10 // Default max connecting
+	}
+	if cfg.ConnectTimeout == 0 {
+		cfg.ConnectTimeout = 10 * time.Second // Default connect timeout
+	}
+	if cfg.ServerSelectionTimeout == 0 {
+		cfg.ServerSelectionTimeout = 30 * time.Second // Default server selection timeout
+	}
 }
 
 func NewMongoConnection(ctx context.Context, cfg *Config) (*mongo.Client, error) {
+	// Set default pool configuration if not provided
+	cfg.withDefault()
+
 	clientOptions := options.Client().ApplyURI(fmt.Sprintf("mongodb://%s:%s@%s", cfg.Username, cfg.Password, cfg.Host))
+
+	// Configure connection pool settings
+	clientOptions.SetMaxPoolSize(cfg.MaxPoolSize)
+	clientOptions.SetMinPoolSize(cfg.MinPoolSize)
+	clientOptions.SetMaxConnIdleTime(cfg.MaxConnIdleTime)
+	clientOptions.SetMaxConnecting(cfg.MaxConnecting)
+	clientOptions.SetConnectTimeout(cfg.ConnectTimeout)
+	clientOptions.SetServerSelectionTimeout(cfg.ServerSelectionTimeout)
+
 	// clientOptions.Direct = aws.Bool(true)
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
