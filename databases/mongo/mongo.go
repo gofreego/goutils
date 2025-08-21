@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/gofreego/goutils/customerrors"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -68,11 +69,11 @@ func NewMongoConnection(ctx context.Context, cfg *Config) (*mongo.Client, error)
 
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to MongoDB: %w", err)
+		return nil, customerrors.New(customerrors.ERROR_CODE_DATABASE_CONNECTION_FAILED, "failed to connect to MongoDB, Err: %s", err.Error())
 	}
 
 	if err := client.Ping(ctx, nil); err != nil {
-		return nil, fmt.Errorf("failed to ping MongoDB: %w", err)
+		return nil, customerrors.New(customerrors.ERROR_CODE_DATABASE_PING_FAILED, "failed to ping MongoDB, Err: %s", err.Error())
 	}
 
 	return client, nil
