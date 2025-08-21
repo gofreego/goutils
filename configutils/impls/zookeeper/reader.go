@@ -15,10 +15,10 @@ import (
 // Username : username for authentication
 // Password : password for authentication
 type Config struct {
-	Address  string
-	Path     string
-	Username string
-	Password string
+	Address  string `yaml:"Address"`
+	Path     string `yaml:"Path"`
+	Username string `yaml:"Username"`
+	Password string `yaml:"Password"`
 }
 
 type ZookeeperReader struct {

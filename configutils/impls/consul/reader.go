@@ -13,9 +13,9 @@ import (
 // Token : token for authentication
 // Path : path in consul to read the configuration from
 type Config struct {
-	Address string
-	Token   string
-	Path    string
+	Address string `yaml:"Address"`
+	Token   string `yaml:"Token"`
+	Path    string `yaml:"Path"`
 }
 
 type ConsulConfigReader struct {

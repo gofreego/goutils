@@ -18,10 +18,10 @@ import (
 // Database is the configuration for database reader
 // File is the configuration for file reader
 type Config struct {
-	Name      common.ConfigReaderName
-	Format    common.ConfigFormatType
-	Consul    consul.Config
-	Zookeeper zookeeper.Config
+	Name      common.ConfigReaderName `yaml:"Name"`
+	Format    common.ConfigFormatType `yaml:"Format"`
+	Consul    consul.Config           `yaml:"Consul"`
+	Zookeeper zookeeper.Config        `yaml:"Zookeeper"`
 }
 
 type ConfigReader interface {
