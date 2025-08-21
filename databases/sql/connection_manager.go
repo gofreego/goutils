@@ -2,6 +2,7 @@ package sql
 
 import (
 	"database/sql"
+	"math/rand"
 
 	"github.com/gofreego/goutils/customerrors"
 	"github.com/gofreego/goutils/databases/pgsql"
@@ -42,7 +43,11 @@ func (d *DBManagerImpl) Primary() *sql.DB {
 	return d.primary
 }
 func (d *DBManagerImpl) Replica() *sql.DB {
-	return d.replica[0]
+	if d.noOfReplicas == 1 {
+		return d.replica[0]
+	}
+	randomIndex := rand.Intn(d.noOfReplicas)
+	return d.replica[randomIndex]
 }
 
 // NewDBManager creates a new DBManager based on the provided configuration.
