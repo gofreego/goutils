@@ -5,7 +5,6 @@ import (
 
 	"github.com/gofreego/goutils/configutils/common"
 	"github.com/gofreego/goutils/configutils/impls/consul"
-	"github.com/gofreego/goutils/configutils/impls/database"
 	"github.com/gofreego/goutils/configutils/impls/file"
 	"github.com/gofreego/goutils/configutils/impls/zookeeper"
 	"github.com/gofreego/goutils/logger"
@@ -23,7 +22,6 @@ type Config struct {
 	Format    common.ConfigFormatType
 	Consul    consul.Config
 	Zookeeper zookeeper.Config
-	Database  database.Config
 	File      file.Config
 }
 
@@ -49,8 +47,6 @@ func NewConfigReader(ctx context.Context, conf *Config) (ConfigReader, error) {
 		return consul.NewConsulConfigReader(ctx, &conf.Consul)
 	case common.ZookeeperConfigReader:
 		return zookeeper.NewZookeeperReader(ctx, &conf.Zookeeper)
-	case common.DatabaseConfigReader:
-		return database.NewDatabaseReader(ctx, &conf.Database)
 	case common.FileConfigReader:
 		return file.NewFileConfigReader(&conf.File), nil
 	default:

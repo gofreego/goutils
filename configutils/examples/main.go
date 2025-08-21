@@ -19,6 +19,7 @@ func (c *Config) GetReaderConfig() *configutils.Config {
 
 func main() {
 	var conf Config
+	configutils.LogConfig(context.TODO(), conf)
 	err := configutils.ReadConfig(context.TODO(), "dev.yaml", &conf)
 	if err != nil {
 		panic(err)

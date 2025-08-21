@@ -1,6 +1,6 @@
 name: config-reader-example
 reader:
-  name: consul
+  name: zookeeper
   consul:
     address: localhost:8500
     path: configs/test
