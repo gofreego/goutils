@@ -4,8 +4,6 @@ package common
 type ConfigReaderName string
 
 const (
-	FileConfigReader      ConfigReaderName = "file"
 	ConsulConfigReader    ConfigReaderName = "consul"
 	ZookeeperConfigReader ConfigReaderName = "zookeeper"
-	DatabaseConfigReader  ConfigReaderName = "database"
 )

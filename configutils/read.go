@@ -22,7 +22,6 @@ type Config struct {
 	Format    common.ConfigFormatType
 	Consul    consul.Config
 	Zookeeper zookeeper.Config
-	File      file.Config
 }
 
 type ConfigReader interface {
@@ -47,8 +46,6 @@ func NewConfigReader(ctx context.Context, conf *Config) (ConfigReader, error) {
 		return consul.NewConsulConfigReader(ctx, &conf.Consul)
 	case common.ZookeeperConfigReader:
 		return zookeeper.NewZookeeperReader(ctx, &conf.Zookeeper)
-	case common.FileConfigReader:
-		return file.NewFileConfigReader(&conf.File), nil
 	default:
 		return nil, common.ErrInvalidConfigReaderName
 	}
