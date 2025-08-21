@@ -1,7 +1,6 @@
 package pgsql
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"time"
@@ -43,7 +42,7 @@ func (c *Config) WithDefaults() {
 	}
 }
 
-func GetConnection(ctx context.Context, cfg *Config) (*sql.DB, error) {
+func GetConnection(cfg *Config) (*sql.DB, error) {
 	if cfg == nil {
 		return nil, customerrors.New(customerrors.ERROR_CODE_DATABASE_INVALID_CONFIGURATION, "configuration cannot be nil")
 	}
