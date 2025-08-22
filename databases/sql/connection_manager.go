@@ -43,6 +43,9 @@ func (d *DBManagerImpl) Primary() *sql.DB {
 	return d.primary
 }
 func (d *DBManagerImpl) Replica() *sql.DB {
+	if d.noOfReplicas == 0 {
+		return d.primary
+	}
 	if d.noOfReplicas == 1 {
 		return d.replica[0]
 	}
@@ -58,10 +61,6 @@ func NewDBManager(cfg *Config) (DBManager, error) {
 	primaryDB, err := pgsql.GetConnection(&cfg.Postgresql.Primary)
 	if err != nil {
 		return nil, customerrors.New(customerrors.ERROR_CODE_DATABASE_CONNECTION_FAILED, "failed to connect to primary database, Err: %s", err.Error())
-	}
-
-	if len(cfg.Postgresql.Replica) == 0 {
-		return nil, customerrors.New(customerrors.ERROR_CODE_DATABASE_INVALID_CONFIGURATION, "no replica databases configured")
 	}
 
 	// Create connections for each replica database
