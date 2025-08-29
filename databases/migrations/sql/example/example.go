@@ -6,18 +6,17 @@ import (
 	"path/filepath"
 
 	"github.com/gofreego/goutils/databases/connections/pgsql"
-	sqlmigrations "github.com/gofreego/goutils/databases/migrations/sql"
-	_ "github.com/lib/pq" // PostgreSQL driver
+	"github.com/gofreego/goutils/databases/migrations/sql"
 )
 
 func main() {
 	// Connect to your database
 	db, err := pgsql.GetConnection(&pgsql.Config{
-		Host:     "192.168.1.100",
+		Host:     "localhost",
 		Port:     5432,
 		Username: "admin",
-		Password: "OSwfiTlc1r5W7Z",
-		DBName:   "bappaapp",
+		Password: "******",
+		DBName:   "*****",
 		SSLMode:  "disable",
 	})
 	if err != nil {
@@ -26,10 +25,10 @@ func main() {
 	defer db.Close()
 
 	// Get the path to migration files
-	migrationPath := filepath.Join(".", "sql")
+	migrationPath := filepath.Join(".", "sql/")
 
 	// Create a new migrator instance
-	migrator, err := sqlmigrations.NewPostgresMigrator(db, migrationPath)
+	migrator, err := sql.NewPostgresMigrator(db, migrationPath)
 	if err != nil {
 		log.Fatal("Failed to create migrator:", err)
 	}
@@ -50,12 +49,26 @@ func main() {
 	log.Printf("Current migration version: %d, dirty: %t", version, dirty)
 
 	// Example of rolling back one step
-	// if err := migrator.Rollback(ctx); err != nil {
-	//     log.Fatal("Failed to rollback:", err)
-	// }
+	if err := migrator.Rollback(ctx); err != nil {
+		log.Fatal("Failed to rollback:", err)
+	}
+	// Check current version
+	version, dirty, err = migrator.Version()
+	if err != nil {
+		log.Fatal("Failed to get version:", err)
+	}
+	log.Printf("Current migration version after rollback: %d, dirty: %t", version, dirty)
 
 	// Example of migrating to a specific version
-	// if err := migrator.MigrateTo(ctx, 2); err != nil {
-	//     log.Fatal("Failed to migrate to version 2:", err)
-	// }
+	if err := migrator.MigrateTo(ctx, 2); err != nil {
+		log.Fatal("Failed to migrate to version 2:", err)
+	}
+
+	// Check current version
+	version, dirty, err = migrator.Version()
+	if err != nil {
+		log.Fatal("Failed to get version:", err)
+	}
+
+	log.Printf("Current migration version after migrate to 2: %d, dirty: %t", version, dirty)
 }
