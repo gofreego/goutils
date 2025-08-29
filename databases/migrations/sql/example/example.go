@@ -2,17 +2,24 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"log"
 	"path/filepath"
 
+	"github.com/gofreego/goutils/databases/connections/pgsql"
 	sqlmigrations "github.com/gofreego/goutils/databases/migrations/sql"
 	_ "github.com/lib/pq" // PostgreSQL driver
 )
 
 func main() {
 	// Connect to your database
-	db, err := sql.Open("postgres", "postgres://user:password@localhost/dbname?sslmode=disable")
+	db, err := pgsql.GetConnection(&pgsql.Config{
+		Host:     "192.168.1.100",
+		Port:     5432,
+		Username: "admin",
+		Password: "OSwfiTlc1r5W7Z",
+		DBName:   "bappaapp",
+		SSLMode:  "disable",
+	})
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
