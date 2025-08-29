@@ -5,7 +5,7 @@ import (
 	"math/rand"
 
 	"github.com/gofreego/goutils/customerrors"
-	"github.com/gofreego/goutils/databases/pgsql"
+	"github.com/gofreego/goutils/databases/connections/pgsql"
 )
 
 type Name string
