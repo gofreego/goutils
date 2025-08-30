@@ -5,6 +5,7 @@ import (
 	"log"
 	"path/filepath"
 
+	"github.com/gofreego/goutils/databases"
 	"github.com/gofreego/goutils/databases/connections/sql/pgsql"
 	"github.com/gofreego/goutils/databases/migrations/sql"
 )
@@ -28,7 +29,12 @@ func main() {
 	migrationPath := filepath.Join(".", "sql/")
 
 	// Create a new migrator instance
-	migrator, err := sql.NewPostgresMigrator(db, migrationPath)
+	migrator, err := sql.NewPostgresMigrator(db, &sql.Config{
+		Path:         migrationPath,
+		DBType:       databases.Postgres,
+		Action:       sql.ActionMigrate,
+		ForceVersion: 0,
+	})
 	if err != nil {
 		log.Fatal("Failed to create migrator:", err)
 	}
@@ -36,7 +42,7 @@ func main() {
 
 	// Run migrations
 	ctx := context.Background()
-	if err := migrator.Migrate(ctx); err != nil {
+	if err := migrator.Run(ctx); err != nil {
 		log.Fatal("Failed to run migrations:", err)
 	}
 
@@ -45,30 +51,5 @@ func main() {
 	if err != nil {
 		log.Fatal("Failed to get version:", err)
 	}
-
-	log.Printf("Current migration version: %d, dirty: %t", version, dirty)
-
-	// Example of rolling back one step
-	if err := migrator.Rollback(ctx); err != nil {
-		log.Fatal("Failed to rollback:", err)
-	}
-	// Check current version
-	version, dirty, err = migrator.Version()
-	if err != nil {
-		log.Fatal("Failed to get version:", err)
-	}
-	log.Printf("Current migration version after rollback: %d, dirty: %t", version, dirty)
-
-	// Example of migrating to a specific version
-	if err := migrator.MigrateTo(ctx, 2); err != nil {
-		log.Fatal("Failed to migrate to version 2:", err)
-	}
-
-	// Check current version
-	version, dirty, err = migrator.Version()
-	if err != nil {
-		log.Fatal("Failed to get version:", err)
-	}
-
 	log.Printf("Current migration version after migrate to 2: %d, dirty: %t", version, dirty)
 }
