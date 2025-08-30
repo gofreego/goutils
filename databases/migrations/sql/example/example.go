@@ -32,7 +32,7 @@ func main() {
 	migrator, err := sql.NewPostgresMigrator(db, &sql.Config{
 		Path:         migrationPath,
 		DBType:       databases.Postgres,
-		Action:       sql.ActionMigrate,
+		Action:       sql.ActionUp,
 		ForceVersion: 0,
 	})
 	if err != nil {
