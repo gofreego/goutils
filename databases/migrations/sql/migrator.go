@@ -5,18 +5,12 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/gofreego/goutils/databases"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database"
 	"github.com/golang-migrate/migrate/v4/database/mysql"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-)
-
-type DatabaseType string
-
-const (
-	Postgres DatabaseType = "postgres"
-	MySQL    DatabaseType = "mysql"
 )
 
 type Migrator interface {
@@ -31,16 +25,16 @@ type Migrator interface {
 // db is the primary database connection to use for migrations.
 // path is the file system path to the migration files.
 // dbType specifies the database type (postgres, mysql, etc.).
-func NewMigrator(db *sql.DB, path string, dbType DatabaseType) (Migrator, error) {
+func NewMigrator(db *sql.DB, path string, dbType databases.DatabaseName) (Migrator, error) {
 	var driver database.Driver
 	var err error
 	var databaseName string
 
 	switch dbType {
-	case Postgres:
+	case databases.Postgres:
 		driver, err = postgres.WithInstance(db, &postgres.Config{})
 		databaseName = "postgres"
-	case MySQL:
+	case databases.MySQL:
 		driver, err = mysql.WithInstance(db, &mysql.Config{})
 		databaseName = "mysql"
 	default:
@@ -68,13 +62,13 @@ func NewMigrator(db *sql.DB, path string, dbType DatabaseType) (Migrator, error)
 // NewPostgresMigrator creates a new Migrator instance for PostgreSQL.
 // This is a convenience function for backward compatibility.
 func NewPostgresMigrator(db *sql.DB, path string) (Migrator, error) {
-	return NewMigrator(db, path, Postgres)
+	return NewMigrator(db, path, databases.Postgres)
 }
 
 // NewMySQLMigrator creates a new Migrator instance for MySQL.
 // This is a convenience function.
 func NewMySQLMigrator(db *sql.DB, path string) (Migrator, error) {
-	return NewMigrator(db, path, MySQL)
+	return NewMigrator(db, path, databases.MySQL)
 }
 
 type migratorImpl struct {

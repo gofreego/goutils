@@ -5,7 +5,7 @@ import (
 	"log"
 	"path/filepath"
 
-	"github.com/gofreego/goutils/databases/connections/pgsql"
+	"github.com/gofreego/goutils/databases/connections/sql/pgsql"
 	"github.com/gofreego/goutils/databases/migrations/sql"
 )
 

@@ -5,24 +5,18 @@ import (
 	"math/rand"
 
 	"github.com/gofreego/goutils/customerrors"
-	"github.com/gofreego/goutils/databases/connections/pgsql"
+	"github.com/gofreego/goutils/databases"
+	"github.com/gofreego/goutils/databases/connections/sql/pgsql"
 )
 
-type Name string
-
-const (
-	MySQL    Name = "mysql"
-	Postgres Name = "postgres"
-)
-
-type PostgresqlConfig struct {
+type PostgresConfig struct {
 	Primary pgsql.Config
 	Replica []pgsql.Config
 }
 
 type Config struct {
-	Name       Name `yaml:"Name"`
-	Postgresql PostgresqlConfig
+	Name     databases.DatabaseName `yaml:"Name"`
+	Postgres PostgresConfig         `yaml:"Postgres"`
 }
 
 type DBManager interface {
@@ -55,17 +49,17 @@ func (d *DBManagerImpl) Replica() *sql.DB {
 
 // NewDBManager creates a new DBManager based on the provided configuration.
 func NewDBManager(cfg *Config) (DBManager, error) {
-	if cfg.Name != Postgres {
+	if cfg.Name != databases.Postgres {
 		return nil, customerrors.New(customerrors.ERROR_CODE_DATABASE_INVALID_CONFIGURATION, "unsupported database type: %s", cfg.Name)
 	}
-	primaryDB, err := pgsql.GetConnection(&cfg.Postgresql.Primary)
+	primaryDB, err := pgsql.GetConnection(&cfg.Postgres.Primary)
 	if err != nil {
 		return nil, customerrors.New(customerrors.ERROR_CODE_DATABASE_CONNECTION_FAILED, "failed to connect to primary database, Err: %s", err.Error())
 	}
 
 	// Create connections for each replica database
-	replicaDBs := make([]*sql.DB, len(cfg.Postgresql.Replica))
-	for i, replicaCfg := range cfg.Postgresql.Replica {
+	replicaDBs := make([]*sql.DB, len(cfg.Postgres.Replica))
+	for i, replicaCfg := range cfg.Postgres.Replica {
 		replicaDBs[i], err = pgsql.GetConnection(&replicaCfg)
 		if err != nil {
 			return nil, customerrors.New(customerrors.ERROR_CODE_DATABASE_CONNECTION_FAILED, "failed to connect to replica database %d, Err: %s", i, err.Error())
