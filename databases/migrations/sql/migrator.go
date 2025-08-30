@@ -18,6 +18,7 @@ type Migrator interface {
 	Rollback(ctx context.Context) error
 	MigrateTo(ctx context.Context, version uint) error
 	Version() (uint, bool, error)
+	Force(int) error
 	Close() error
 }
 
@@ -77,7 +78,16 @@ type migratorImpl struct {
 	migrate *migrate.Migrate
 }
 
-// Rollback implements Migrator.
+// Force will force the migration to a specific version.
+// it will false the dirty state
+func (m *migratorImpl) Force(version int) error {
+	if err := m.migrate.Force(version); err != nil {
+		return fmt.Errorf("failed to force migration to version %d: %w", version, err)
+	}
+	return nil
+}
+
+// Rollback reverts the migration to the previous version.
 func (m *migratorImpl) Rollback(ctx context.Context) error {
 	if err := m.migrate.Steps(-1); err != nil && err != migrate.ErrNoChange {
 		return fmt.Errorf("failed to rollback migration: %w", err)
@@ -85,7 +95,7 @@ func (m *migratorImpl) Rollback(ctx context.Context) error {
 	return nil
 }
 
-// Migrate implements Migrator.
+// Migrate applies all available migrations.
 func (m *migratorImpl) Migrate(ctx context.Context) error {
 	if err := m.migrate.Up(); err != nil && err != migrate.ErrNoChange {
 		return fmt.Errorf("failed to run migrations: %w", err)
@@ -93,7 +103,7 @@ func (m *migratorImpl) Migrate(ctx context.Context) error {
 	return nil
 }
 
-// MigrateTo implements Migrator.
+// MigrateTo migrates the database to a specific version.
 func (m *migratorImpl) MigrateTo(ctx context.Context, version uint) error {
 	if err := m.migrate.Migrate(version); err != nil && err != migrate.ErrNoChange {
 		return fmt.Errorf("failed to migrate to version %d: %w", version, err)
@@ -101,7 +111,7 @@ func (m *migratorImpl) MigrateTo(ctx context.Context, version uint) error {
 	return nil
 }
 
-// Version implements Migrator.
+// Version returns the current migration version and dirty state.
 func (m *migratorImpl) Version() (uint, bool, error) {
 	version, dirty, err := m.migrate.Version()
 	if err != nil {
@@ -110,7 +120,7 @@ func (m *migratorImpl) Version() (uint, bool, error) {
 	return version, dirty, nil
 }
 
-// Close implements Migrator.
+// Close will close the db connections
 func (m *migratorImpl) Close() error {
 	sourceErr, dbErr := m.migrate.Close()
 	if sourceErr != nil {
