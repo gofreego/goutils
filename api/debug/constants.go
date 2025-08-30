@@ -174,7 +174,7 @@ const (
 </head>
 <body>
     <div class="container">
-        <h1>🛠️ Debug Dashboard</h1>
+        <h1>Debug Dashboard</h1>
         
         <div class="service-info">
             <strong>Service:</strong> %s &nbsp;
@@ -184,49 +184,49 @@ const (
 
         <div class="grid">
             <div class="card">
-                <h2>🏥 Health Checks</h2>
+                <h2>Health Checks</h2>
                 
                 <h3 onclick="fetchData('health', '%s/health')" class="clickable-item">
-                    📊 Service Health
+                    Service Health
                 </h3>
                 <div id="health-data" class="data-section"></div>
                 
                 <h3 onclick="fetchData('readiness', '%s/health/ready')" class="clickable-item">
-                    ✅ Readiness Probe
+                    Readiness Probe
                 </h3>
                 <div id="readiness-data" class="data-section"></div>
                 
                 <h3 onclick="fetchData('liveness', '%s/health/live')" class="clickable-item">
-                    💓 Liveness Probe
+                    Liveness Probe
                 </h3>
                 <div id="liveness-data" class="data-section"></div>
             </div>
 
             <div class="card">
-                <h2>📊 System Information</h2>
+                <h2>System Information</h2>
                 
                 <h3 onclick="fetchData('service-info', '%s/debug/info')" class="clickable-item">
-                    🏷️ Service Info
+                    Service Info
                 </h3>
                 <div id="service-info-data" class="data-section"></div>
                 
                 <h3 onclick="fetchData('runtime', '%s/debug/runtime')" class="clickable-item">
-                    ⚙️ Runtime Stats
+                    Runtime Stats
                 </h3>
                 <div id="runtime-data" class="data-section"></div>
                 
                 <h3 onclick="fetchData('memory', '%s/debug/memory')" class="clickable-item">
-                    💾 Memory Stats
+                    Memory Stats
                 </h3>
                 <div id="memory-data" class="data-section"></div>
                 
                 <h3 onclick="fetchData('vars', '%s/debug/vars')" class="clickable-item">
-                    📋 Runtime Variables
+                    Runtime Variables
                 </h3>
                 <div id="vars-data" class="data-section"></div>
                 
                 <h3 onclick="fetchData('env', '%s/debug/env')" class="clickable-item">
-                    🌍 Environment Variables
+                    Environment Variables
                 </h3>
                 <div id="env-data" class="data-section"></div>
             </div>
@@ -376,10 +376,10 @@ const (
 	// PProfSectionTemplate is the HTML template for the pprof section in the debug dashboard
 	PProfSectionTemplate = `
         <div class="card">
-            <h2>🔍 Profiling & Performance</h2>
+            <h2>Profiling & Performance</h2>
             
             <h3 onclick="showPprofLinks()" class="clickable-item">
-                📈 Profiling Tools
+                Profiling Tools
             </h3>
             <div id="pprof-links" class="data-section">
                 <div class="pprof-links">
