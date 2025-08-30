@@ -22,8 +22,8 @@ type Migrator interface {
 type Action string
 
 const (
-	ActionMigrate   Action = "migrate"
-	ActionRollback  Action = "rollback"
+	ActionUp        Action = "up"
+	ActionDown      Action = "down"
 	ActionMigrateTo Action = "migrate_to"
 	ActionForce     Action = "force"
 	ActionVersion   Action = "version"
@@ -95,16 +95,16 @@ type migratorImpl struct {
 // Run implements Migrator.
 func (m *migratorImpl) Run(ctx context.Context) error {
 	switch m.cfg.Action {
-	case ActionMigrate:
+	case ActionUp:
 		return m.up()
-	case ActionRollback:
-		return m.rollback()
+	case ActionDown:
+		return m.down()
 	case ActionMigrateTo:
-		return m.migrateTo(ctx, uint(m.cfg.ForceVersion))
+		return m.migrateTo(uint(m.cfg.ForceVersion))
 	case ActionForce:
 		return m.force(m.cfg.ForceVersion)
 	default:
-		return fmt.Errorf("unknown action: %s, expected one of: %v", m.cfg.Action, []Action{ActionMigrate, ActionRollback, ActionMigrateTo, ActionForce})
+		return fmt.Errorf("unknown action: %s, expected one of: %v", m.cfg.Action, []Action{ActionUp, ActionDown, ActionMigrateTo, ActionForce})
 	}
 }
 
@@ -117,10 +117,10 @@ func (m *migratorImpl) force(version int) error {
 	return nil
 }
 
-// rollback reverts the migration to the previous version.
-func (m *migratorImpl) rollback() error {
+// down reverts the migration to the previous version.
+func (m *migratorImpl) down() error {
 	if err := m.migrate.Steps(-1); err != nil && err != migrate.ErrNoChange {
-		return fmt.Errorf("failed to rollback migration: %w", err)
+		return fmt.Errorf("failed to down migration: %w", err)
 	}
 	return nil
 }
@@ -134,7 +134,7 @@ func (m *migratorImpl) up() error {
 }
 
 // MigrateTo migrates the database to a specific version.
-func (m *migratorImpl) migrateTo(ctx context.Context, version uint) error {
+func (m *migratorImpl) migrateTo(version uint) error {
 	if err := m.migrate.Migrate(version); err != nil && err != migrate.ErrNoChange {
 		return fmt.Errorf("failed to migrate to version %d: %w", version, err)
 	}
