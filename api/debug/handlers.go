@@ -247,9 +247,10 @@ func DebugIndexHandler(serviceName, environment, basePath string, enablePprof bo
 }
 
 // RegisterDebugHandlers registers all debug handlers with the given mux
-func RegisterDebugHandlers(mux *http.ServeMux, serviceName, environment string, enablePprof bool) {
-	ctx := context.Background()
-
+func RegisterDebugHandlers(ctx context.Context, cfg *Config, mux *http.ServeMux, serviceName, environment string) {
+	if !cfg.Enabled {
+		return
+	}
 	// Health check endpoints
 	mux.HandleFunc("/health", HealthHandler(serviceName))
 	mux.HandleFunc("/health/ready", ReadinessHandler(serviceName))
@@ -263,7 +264,7 @@ func RegisterDebugHandlers(mux *http.ServeMux, serviceName, environment string, 
 	mux.HandleFunc("/debug/env", EnvHandler())
 
 	// Profiling endpoints (only if enabled)
-	if enablePprof {
+	if cfg.EnablePprof {
 		mux.HandleFunc("/debug/pprof/", PProfIndexHandler(""))
 		mux.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
 		mux.HandleFunc("/debug/pprof/profile", pprof.Profile)
@@ -283,8 +284,7 @@ func RegisterDebugHandlers(mux *http.ServeMux, serviceName, environment string, 
 }
 
 // RegisterDebugHandlersWithGateway registers debug handlers with grpc-gateway ServeMux
-func RegisterDebugHandlersWithGateway(mux *gwruntime.ServeMux, serviceName, environment, basePath string, enablePprof bool) {
-	ctx := context.Background()
+func RegisterDebugHandlersWithGateway(ctx context.Context, cfg *Config, mux *gwruntime.ServeMux, serviceName, environment, basePath string) {
 
 	// Health check endpoints
 	mux.HandlePath("GET", basePath+"/health", func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
@@ -299,7 +299,7 @@ func RegisterDebugHandlersWithGateway(mux *gwruntime.ServeMux, serviceName, envi
 
 	// Debug endpoints
 	mux.HandlePath("GET", basePath+"/debug", func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
-		DebugIndexHandler(serviceName, environment, basePath, enablePprof)(w, r)
+		DebugIndexHandler(serviceName, environment, basePath, cfg.EnablePprof)(w, r)
 	})
 	mux.HandlePath("GET", basePath+"/debug/info", func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
 		InfoHandler(serviceName, environment)(w, r)
@@ -318,7 +318,7 @@ func RegisterDebugHandlersWithGateway(mux *gwruntime.ServeMux, serviceName, envi
 	})
 
 	// Profiling endpoints (only if enabled)
-	if enablePprof {
+	if cfg.EnablePprof {
 		mux.HandlePath("GET", basePath+"/debug/pprof/", func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
 			PProfIndexHandler(basePath)(w, r)
 		})
