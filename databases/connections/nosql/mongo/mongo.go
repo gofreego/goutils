@@ -45,9 +45,6 @@ func (cfg *Config) withDefault() {
 	if cfg.ServerSelectionTimeout == 0 {
 		cfg.ServerSelectionTimeout = 30 * time.Second // Default server selection timeout
 	}
-	if cfg.ReplicaSet == "" {
-		cfg.ReplicaSet = "rs0" // Default replica set name
-	}
 }
 
 func NewMongoConnection(ctx context.Context, cfg *Config) (*mongo.Client, error) {
