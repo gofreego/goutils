@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 
+	_ "github.com/ClickHouse/clickhouse-go/v2" // registers "clickhouse" database/sql driver
 	"github.com/gofreego/goutils/customerrors"
-	_ "github.com/golang-migrate/migrate/v4/database/clickhouse" // registers "clickhouse" driver
 )
 
 type Config struct {
