@@ -13,6 +13,7 @@ require (
 	github.com/lib/pq v1.10.9
 	go.mongodb.org/mongo-driver v1.17.4
 	go.uber.org/zap v1.27.0
+	google.golang.org/grpc v1.75.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
@@ -44,7 +45,6 @@ require (
 	golang.org/x/sync v0.16.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250818200422-3122310a409c // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250818200422-3122310a409c // indirect
-	google.golang.org/grpc v1.75.0 // indirect
 )
 
 require (

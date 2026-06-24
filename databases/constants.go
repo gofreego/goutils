@@ -3,6 +3,7 @@ package databases
 type DatabaseName string
 
 const (
-	Postgres DatabaseName = "Postgres"
-	MySQL    DatabaseName = "MySQL"
+	Postgres   DatabaseName = "Postgres"
+	MySQL      DatabaseName = "MySQL"
+	ClickHouse DatabaseName = "ClickHouse"
 )

@@ -8,6 +8,7 @@ import (
 	"github.com/gofreego/goutils/databases"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database"
+	"github.com/golang-migrate/migrate/v4/database/clickhouse"
 	"github.com/golang-migrate/migrate/v4/database/mysql"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -52,8 +53,11 @@ func NewMigrator(db *sql.DB, cfg *Config) (Migrator, error) {
 	case databases.MySQL:
 		driver, err = mysql.WithInstance(db, &mysql.Config{})
 		databaseName = "mysql"
+	case databases.ClickHouse:
+		driver, err = clickhouse.WithInstance(db, &clickhouse.Config{})
+		databaseName = "clickhouse"
 	default:
-		return nil, fmt.Errorf("unsupported database type: %s, expected: %v", cfg.DBType, []databases.DatabaseName{databases.Postgres, databases.MySQL})
+		return nil, fmt.Errorf("unsupported database type: %s, expected: %v", cfg.DBType, []databases.DatabaseName{databases.Postgres, databases.MySQL, databases.ClickHouse})
 	}
 
 	if err != nil {
