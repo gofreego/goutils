@@ -9,6 +9,7 @@ import (
 	"github.com/gofreego/goutils/configutils"
 	"github.com/gofreego/goutils/databases"
 	"github.com/gofreego/goutils/databases/connections/sql"
+	"github.com/gofreego/goutils/databases/connections/sql/clickhouse"
 	"github.com/gofreego/goutils/databases/connections/sql/pgsql"
 	migrator "github.com/gofreego/goutils/databases/migrations/sql"
 	"github.com/gofreego/goutils/logger"
@@ -33,8 +34,13 @@ func NewSQLMigrator(cfg *Config) *SQLMigrator {
 		if err != nil {
 			panic("failed to get Postgres connection, err:" + err.Error())
 		}
+	case databases.ClickHouse:
+		db, err = clickhouse.GetConnection(&cfg.Repository.ClickHouse)
+		if err != nil {
+			panic("failed to get ClickHouse connection, err:" + err.Error())
+		}
 	default:
-		panic(fmt.Sprintf("unsupported database for migration: %s, expected: %s", cfg.Repository.Name, databases.Postgres))
+		panic(fmt.Sprintf("unsupported database for migration: %s, expected one of: %s, %s", cfg.Repository.Name, databases.Postgres, databases.ClickHouse))
 	}
 
 	cfg.Migrator.DBType = cfg.Repository.Name

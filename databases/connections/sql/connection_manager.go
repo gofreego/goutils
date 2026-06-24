@@ -6,6 +6,7 @@ import (
 
 	"github.com/gofreego/goutils/customerrors"
 	"github.com/gofreego/goutils/databases"
+	"github.com/gofreego/goutils/databases/connections/sql/clickhouse"
 	"github.com/gofreego/goutils/databases/connections/sql/pgsql"
 )
 
@@ -15,8 +16,9 @@ type PostgresConfig struct {
 }
 
 type Config struct {
-	Name     databases.DatabaseName `yaml:"Name"`
-	Postgres PostgresConfig         `yaml:"Postgres"`
+	Name       databases.DatabaseName `yaml:"Name"`
+	Postgres   PostgresConfig         `yaml:"Postgres"`
+	ClickHouse clickhouse.Config      `yaml:"ClickHouse"`
 }
 
 type DBManager interface {
