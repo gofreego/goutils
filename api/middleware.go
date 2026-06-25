@@ -2,25 +2,53 @@ package api
 
 import (
 	"net/http"
+	"strconv"
 )
 
-// CORSMiddleware adds CORS headers and handles OPTIONS requests
-func CORSMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Set CORS headers
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
-		w.Header().Set("Access-Control-Allow-Headers", "*")
-		w.Header().Set("Access-Control-Expose-Headers", "X-Request-ID")
-		w.Header().Set("Access-Control-Max-Age", "86400") // 24 hours
+// CORSConfig holds the CORS policy read from the settings store.
+type CORSConfig struct {
+	Enabled        bool   `json:"enabled"`
+	AllowedOrigins string `json:"allowedOrigins"`
+	AllowedMethods string `json:"allowedMethods"`
+	AllowedHeaders string `json:"allowedHeaders"`
+	MaxAge         int    `json:"maxAge"`
+}
 
-		// Handle preflight OPTIONS requests
+// DefaultCORSConfig returns a permissive default that allows all origins.
+func DefaultCORSConfig() *CORSConfig {
+	return &CORSConfig{
+		Enabled:        false,
+		AllowedOrigins: "*",
+		AllowedMethods: "GET, POST, PUT, DELETE, OPTIONS, PATCH",
+		AllowedHeaders: "*",
+		MaxAge:         3600,
+	}
+}
+
+// CorsMiddleware adds CORS headers using a dynamic config provider so the
+// policy can be changed at runtime without restarting the server.
+func CorsMiddleware(next http.Handler, getConfig func() *CORSConfig) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		cfg := getConfig()
+		if cfg == nil {
+			cfg = DefaultCORSConfig()
+		}
+
+		if cfg.Enabled {
+			origin := r.Header.Get("Origin")
+			if origin != "" {
+				w.Header().Set("Access-Control-Allow-Origin", cfg.AllowedOrigins)
+				w.Header().Set("Access-Control-Allow-Methods", cfg.AllowedMethods)
+				w.Header().Set("Access-Control-Allow-Headers", cfg.AllowedHeaders)
+				w.Header().Set("Access-Control-Max-Age", strconv.Itoa(cfg.MaxAge))
+			}
+		}
+
 		if r.Method == "OPTIONS" {
-			w.WriteHeader(http.StatusOK)
+			w.WriteHeader(http.StatusNoContent)
 			return
 		}
 
-		// Continue to next handler
 		next.ServeHTTP(w, r)
 	})
 }
