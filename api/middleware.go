@@ -17,7 +17,7 @@ type CORSConfig struct {
 // DefaultCORSConfig returns a permissive default that allows all origins.
 func DefaultCORSConfig() *CORSConfig {
 	return &CORSConfig{
-		Enabled:        false,
+		Enabled:        true,
 		AllowedOrigins: "*",
 		AllowedMethods: "GET, POST, PUT, DELETE, OPTIONS, PATCH",
 		AllowedHeaders: "*",
@@ -35,13 +35,10 @@ func CorsMiddleware(next http.Handler, getConfig func() *CORSConfig) http.Handle
 		}
 
 		if cfg.Enabled {
-			origin := r.Header.Get("Origin")
-			if origin != "" {
-				w.Header().Set("Access-Control-Allow-Origin", cfg.AllowedOrigins)
-				w.Header().Set("Access-Control-Allow-Methods", cfg.AllowedMethods)
-				w.Header().Set("Access-Control-Allow-Headers", cfg.AllowedHeaders)
-				w.Header().Set("Access-Control-Max-Age", strconv.Itoa(cfg.MaxAge))
-			}
+			w.Header().Set("Access-Control-Allow-Origin", cfg.AllowedOrigins)
+			w.Header().Set("Access-Control-Allow-Methods", cfg.AllowedMethods)
+			w.Header().Set("Access-Control-Allow-Headers", cfg.AllowedHeaders)
+			w.Header().Set("Access-Control-Max-Age", strconv.Itoa(cfg.MaxAge))
 		}
 
 		if r.Method == "OPTIONS" {
