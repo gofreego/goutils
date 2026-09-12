@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gofreego/goutils/logger"
+	"github.com/gofreego/goutils/metrics"
 	gwruntime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 )
 
@@ -263,6 +264,9 @@ func RegisterDebugHandlers(ctx context.Context, cfg *Config, mux *http.ServeMux,
 	mux.HandleFunc("/debug/vars", VarsHandler())
 	mux.HandleFunc("/debug/env", EnvHandler())
 
+	// Prometheus metrics
+	mux.Handle("/metrics", metrics.Handler())
+
 	// Profiling endpoints (only if enabled)
 	if cfg.EnablePprof {
 		mux.HandleFunc("/debug/pprof/", PProfIndexHandler(""))
@@ -315,6 +319,11 @@ func RegisterDebugHandlersWithGateway(ctx context.Context, cfg *Config, mux *gwr
 	})
 	mux.HandlePath("GET", basePath+"/debug/env", func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
 		EnvHandler()(w, r)
+	})
+
+	// Prometheus metrics
+	mux.HandlePath("GET", basePath+"/metrics", func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
+		metrics.Handler().ServeHTTP(w, r)
 	})
 
 	// Profiling endpoints (only if enabled)
